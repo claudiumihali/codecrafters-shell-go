@@ -13,27 +13,29 @@ func prompt(w io.Writer) {
 	fmt.Fprintf(w, "$ ")
 }
 
-func builtinCommand(word string) bool {
-	switch word {
+func builtinCommand(words []string, out io.Writer) bool {
+	switch words[0] {
 	case "exit":
 		os.Exit(0)
+	case "echo":
+		fmt.Fprintf(out, "%s\n", strings.Join(words[1:], " "))
 	default:
 		return false
 	}
 	return true
 }
 
-func process(in string) error {
+func process(in string, out io.Writer) error {
 	words := strings.Fields(in)
 	if len(words) == 0 {
 		return nil
 	}
 
-	if builtinCommand(words[0]) {
+	if builtinCommand(words, out) {
 		return nil
 	}
 
-	fmt.Printf("%s: command not found\n", words[0])
+	fmt.Fprintf(out, "%s: command not found\n", words[0])
 
 	return nil
 }
@@ -43,7 +45,7 @@ func main() {
 
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		process(scanner.Text())
+		process(scanner.Text(), os.Stdout)
 		prompt(os.Stdout)
 	}
 	err := scanner.Err()
