@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
@@ -9,29 +10,13 @@ import (
 	"strings"
 )
 
-func prompt(w io.Writer) {
-	fmt.Fprintf(w, "$ ")
-}
-
-func builtinCommand(words []string, out io.Writer) bool {
-	switch words[0] {
-	case "exit":
-		os.Exit(0)
-	case "echo":
-		fmt.Fprintf(out, "%s\n", strings.Join(words[1:], " "))
-	default:
-		return false
-	}
-	return true
-}
-
 func process(in string, out io.Writer) error {
 	words := strings.Fields(in)
 	if len(words) == 0 {
 		return nil
 	}
 
-	if builtinCommand(words, out) {
+	if builtin(words, out) {
 		return nil
 	}
 
@@ -40,7 +25,11 @@ func process(in string, out io.Writer) error {
 	return nil
 }
 
-func main() {
+func run(ctx context.Context, args []string) error {
+	logger := slog.New(slog.NewJSONHandler(os.Stderr,
+		&slog.HandlerOptions{Level: slog.LevelInfo}))
+	slog.SetDefault(logger)
+
 	prompt(os.Stdout)
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -48,9 +37,15 @@ func main() {
 		process(scanner.Text(), os.Stdout)
 		prompt(os.Stdout)
 	}
-	err := scanner.Err()
+
+	return scanner.Err()
+}
+
+func main() {
+	ctx := context.Background()
+	err := run(ctx, os.Args)
 	if err != nil {
-		slog.Error("error reading input", "err", err)
+		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
 	}
 }
