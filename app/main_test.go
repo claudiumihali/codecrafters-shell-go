@@ -31,16 +31,29 @@ func TestPrompt(t *testing.T) {
 }
 
 func TestInvalidCommand(t *testing.T) {
-	invalidCommand := "invalid_raspberry_command"
-
 	in := &strings.Builder{}
 	out := &strings.Builder{}
 
 	fmt.Fprintf(out, "%c ", sigil)
 
-	fmt.Fprintf(in, "%s\n", invalidCommand)
-	fmt.Fprintf(out, "%s: command not found\n", invalidCommand)
+	fmt.Fprintf(in, "invalid_raspberry_command\n")
+	fmt.Fprintf(out, "invalid_raspberry_command: command not found\n")
 	fmt.Fprintf(out, "%c ", sigil)
+
+	simulateShell(t, in.String(), out.String())
+}
+
+func TestRepl(t *testing.T) {
+	in := &strings.Builder{}
+	out := &strings.Builder{}
+
+	fmt.Fprintf(out, "%c ", sigil)
+
+	for i := range 5 {
+		fmt.Fprintf(in, "invalid_command_%d\n", i+1)
+		fmt.Fprintf(out, "invalid_command_%d: command not found\n", i+1)
+		fmt.Fprintf(out, "%c ", sigil)
+	}
 
 	simulateShell(t, in.String(), out.String())
 }
