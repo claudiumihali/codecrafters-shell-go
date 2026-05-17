@@ -7,29 +7,34 @@ import (
 	"log/slog"
 	"os"
 	"strings"
-	"unicode"
 )
 
 func prompt(w io.Writer) {
 	fmt.Fprintf(w, "$ ")
 }
 
-func in(r io.Reader) ([]string, error) {
-	out := make([]string, 0, 1)
-
-	scanner := bufio.NewScanner(r)
-	for scanner.Scan() {
-		out = append(out, scanner.Text())
+func builtinCommand(word string) bool {
+	switch word {
+	case "exit":
+		os.Exit(0)
+	default:
+		return false
 	}
-
-	return out, scanner.Err()
+	return true
 }
 
 func process(in string) error {
-	for word := range strings.FieldsFuncSeq(in, unicode.IsSpace) {
-		fmt.Printf("%s: command not found\n", word)
-		break
+	words := strings.Fields(in)
+	if len(words) == 0 {
+		return nil
 	}
+
+	if builtinCommand(words[0]) {
+		return nil
+	}
+
+	fmt.Printf("%s: command not found\n", words[0])
+
 	return nil
 }
 
