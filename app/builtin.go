@@ -3,14 +3,13 @@ package main
 import (
 	"fmt"
 	"io"
-	"os"
 	"strings"
 )
 
-func builtin(words []string, w io.Writer) bool {
+func builtin(words []string, w io.Writer, exitF func()) bool {
 	switch words[0] {
 	case "exit":
-		os.Exit(0)
+		exitF()
 	case "echo":
 		fmt.Fprintf(w, "%s\n", strings.Join(words[1:], " "))
 	default:

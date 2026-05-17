@@ -7,10 +7,10 @@ import (
 	"testing"
 )
 
-func simulateShell(t *testing.T, in string, expectedOut string) {
+func simulateShell(t *testing.T, in string, expectedOut string, exitF func()) {
 	inBuf := bytes.NewBufferString(in)
 	outBuf := &bytes.Buffer{}
-	err := run(t.Context(), nil, inBuf, outBuf)
+	err := run(t.Context(), nil, inBuf, outBuf, exitF)
 	if err != nil {
 		t.Fatalf("error run: %v", err)
 	}
@@ -21,13 +21,19 @@ func simulateShell(t *testing.T, in string, expectedOut string) {
 	}
 }
 
+func unexpectedExit(t *testing.T) func() {
+	return func() {
+		t.Fatal("unexpected exit")
+	}
+}
+
 func TestPrompt(t *testing.T) {
 	in := &strings.Builder{}
 	out := &strings.Builder{}
 
 	fmt.Fprintf(out, "%c ", sigil)
 
-	simulateShell(t, in.String(), out.String())
+	simulateShell(t, in.String(), out.String(), unexpectedExit(t))
 }
 
 func TestInvalidCommand(t *testing.T) {
@@ -40,7 +46,7 @@ func TestInvalidCommand(t *testing.T) {
 	fmt.Fprintf(out, "invalid_raspberry_command: command not found\n")
 	fmt.Fprintf(out, "%c ", sigil)
 
-	simulateShell(t, in.String(), out.String())
+	simulateShell(t, in.String(), out.String(), unexpectedExit(t))
 }
 
 func TestRepl(t *testing.T) {
@@ -55,5 +61,5 @@ func TestRepl(t *testing.T) {
 		fmt.Fprintf(out, "%c ", sigil)
 	}
 
-	simulateShell(t, in.String(), out.String())
+	simulateShell(t, in.String(), out.String(), unexpectedExit(t))
 }

@@ -10,13 +10,13 @@ import (
 	"strings"
 )
 
-func process(line string, w io.Writer) error {
+func process(line string, w io.Writer, exitF func()) error {
 	words := strings.Fields(line)
 	if len(words) == 0 {
 		return nil
 	}
 
-	if builtin(words, w) {
+	if builtin(words, w, exitF) {
 		return nil
 	}
 
@@ -27,6 +27,7 @@ func process(line string, w io.Writer) error {
 
 func run(
 	ctx context.Context, args []string, in io.Reader, out io.Writer,
+	exitF func(),
 ) error {
 	logger := slog.New(slog.NewJSONHandler(os.Stderr,
 		&slog.HandlerOptions{Level: slog.LevelInfo}))
@@ -36,7 +37,7 @@ func run(
 
 	scanner := bufio.NewScanner(in)
 	for scanner.Scan() {
-		process(scanner.Text(), out)
+		process(scanner.Text(), out, exitF)
 		prompt(out)
 	}
 
@@ -45,7 +46,7 @@ func run(
 
 func main() {
 	ctx := context.Background()
-	err := run(ctx, os.Args, os.Stdin, os.Stdout)
+	err := run(ctx, os.Args, os.Stdin, os.Stdout, func() { os.Exit(0) })
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
