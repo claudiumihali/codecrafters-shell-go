@@ -7,12 +7,12 @@ import (
 	"strings"
 )
 
-func builtin(words []string, out io.Writer) bool {
+func builtin(words []string, w io.Writer) bool {
 	switch words[0] {
 	case "exit":
 		os.Exit(0)
 	case "echo":
-		fmt.Fprintf(out, "%s\n", strings.Join(words[1:], " "))
+		fmt.Fprintf(w, "%s\n", strings.Join(words[1:], " "))
 	default:
 		return false
 	}
