@@ -7,10 +7,11 @@ import (
 	"testing"
 )
 
-func simulateShell(t *testing.T, in string, expectedOut string, exitF func()) {
-	inBuf := bytes.NewBufferString(in)
+func simulateShell(t *testing.T, os osParams, expectedOut string) {
 	outBuf := &bytes.Buffer{}
-	err := run(inBuf, outBuf, exitF)
+	os.out = outBuf
+
+	err := run(os)
 	if err != nil {
 		t.Fatalf("error run: %v", err)
 	}
@@ -33,7 +34,10 @@ func TestPrompt(t *testing.T) {
 
 	prompt(out)
 
-	simulateShell(t, in.String(), out.String(), unexpectedExit(t))
+	simulateShell(t, osParams{
+		in:    strings.NewReader(in.String()),
+		exitF: unexpectedExit(t),
+	}, out.String())
 }
 
 func TestInvalidCommand(t *testing.T) {
@@ -46,7 +50,10 @@ func TestInvalidCommand(t *testing.T) {
 	fmt.Fprintf(out, "invalid_raspberry_command: command not found\n")
 	prompt(out)
 
-	simulateShell(t, in.String(), out.String(), unexpectedExit(t))
+	simulateShell(t, osParams{
+		in:    strings.NewReader(in.String()),
+		exitF: unexpectedExit(t),
+	}, out.String())
 }
 
 func TestRepl(t *testing.T) {
@@ -61,5 +68,8 @@ func TestRepl(t *testing.T) {
 		prompt(out)
 	}
 
-	simulateShell(t, in.String(), out.String(), unexpectedExit(t))
+	simulateShell(t, osParams{
+		in:    strings.NewReader(in.String()),
+		exitF: unexpectedExit(t),
+	}, out.String())
 }

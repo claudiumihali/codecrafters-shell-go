@@ -6,7 +6,7 @@ import (
 )
 
 type Cmd struct {
-	Environ map[string]string
+	Environ []string
 	Args    []string
 	In      io.Reader
 	Out     io.Writer

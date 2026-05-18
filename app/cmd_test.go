@@ -21,7 +21,10 @@ func TestExit(t *testing.T) {
 
 	exited := false
 
-	simulateShell(t, in.String(), out.String(), func() { exited = true })
+	simulateShell(t, osParams{
+		in:    strings.NewReader(in.String()),
+		exitF: func() { exited = true },
+	}, out.String())
 
 	if !exited {
 		t.Fatal("expected exit")
@@ -50,7 +53,10 @@ func TestEcho(t *testing.T) {
 	fmt.Fprintf(out, "\n")
 	prompt(out)
 
-	simulateShell(t, in.String(), out.String(), unexpectedExit(t))
+	simulateShell(t, osParams{
+		in:    strings.NewReader(in.String()),
+		exitF: unexpectedExit(t),
+	}, out.String())
 }
 
 func TestType(t *testing.T) {
@@ -79,5 +85,8 @@ func TestType(t *testing.T) {
 	fmt.Fprintf(out, "invalid_banana_command: not found\n")
 	prompt(out)
 
-	simulateShell(t, in.String(), out.String(), unexpectedExit(t))
+	simulateShell(t, osParams{
+		in:    strings.NewReader(in.String()),
+		exitF: unexpectedExit(t),
+	}, out.String())
 }
