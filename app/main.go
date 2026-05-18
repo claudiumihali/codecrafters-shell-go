@@ -5,39 +5,32 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log/slog"
 	"os"
 	"strings"
+
+	"github.com/codecrafters-io/shell-starter-go/app/builtin"
 )
-
-func process(line string, w io.Writer, exitF func()) error {
-	words := strings.Fields(line)
-	if len(words) == 0 {
-		return nil
-	}
-
-	if builtin(words, w, exitF) {
-		return nil
-	}
-
-	fmt.Fprintf(w, "%s: command not found\n", words[0])
-
-	return nil
-}
 
 func run(
 	ctx context.Context, args []string, in io.Reader, out io.Writer,
 	exitF func(),
 ) error {
-	logger := slog.New(slog.NewJSONHandler(os.Stderr,
-		&slog.HandlerOptions{Level: slog.LevelInfo}))
-	slog.SetDefault(logger)
-
 	prompt(out)
 
 	scanner := bufio.NewScanner(in)
 	for scanner.Scan() {
-		process(scanner.Text(), out, exitF)
+		cmdArgs := strings.Fields(scanner.Text())
+		if len(cmdArgs) == 0 {
+			prompt(out)
+			continue
+		}
+
+		if builtin.Run(cmdArgs, in, out, exitF) {
+			prompt(out)
+			continue
+		}
+
+		fmt.Fprintf(out, "%s: command not found\n", cmdArgs[0])
 		prompt(out)
 	}
 
