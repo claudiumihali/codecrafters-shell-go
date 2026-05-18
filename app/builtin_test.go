@@ -71,8 +71,12 @@ func TestType(t *testing.T) {
 	fmt.Fprintf(out, "type is a shell builtin\n")
 	prompt(out)
 
-	fmt.Fprintf(in, "type invalid_command\n")
-	fmt.Fprintf(out, "invalid_command: not found\n")
+	fmt.Fprintf(in, "type invalid_grape_command\n")
+	fmt.Fprintf(out, "invalid_grape_command: not found\n")
+	prompt(out)
+
+	fmt.Fprintf(in, "type invalid_banana_command\n")
+	fmt.Fprintf(out, "invalid_banana_command: not found\n")
 	prompt(out)
 
 	simulateShell(t, in.String(), out.String(), unexpectedExit(t))
