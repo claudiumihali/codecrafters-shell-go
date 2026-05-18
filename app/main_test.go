@@ -10,7 +10,7 @@ import (
 func simulateShell(t *testing.T, in string, expectedOut string, exitF func()) {
 	inBuf := bytes.NewBufferString(in)
 	outBuf := &bytes.Buffer{}
-	err := run(t.Context(), nil, inBuf, outBuf, exitF)
+	err := run(inBuf, outBuf, exitF)
 	if err != nil {
 		t.Fatalf("error run: %v", err)
 	}

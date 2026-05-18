@@ -2,35 +2,30 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"io"
 	"os"
 	"strings"
 
-	"github.com/codecrafters-io/shell-starter-go/app/builtin"
+	"github.com/codecrafters-io/shell-starter-go/app/cmd"
 )
 
-func run(
-	ctx context.Context, args []string, in io.Reader, out io.Writer,
-	exitF func(),
-) error {
+func run(in io.Reader, out io.Writer, exitF func()) error {
 	prompt(out)
 
 	scanner := bufio.NewScanner(in)
 	for scanner.Scan() {
-		cmdArgs := strings.Fields(scanner.Text())
-		if len(cmdArgs) == 0 {
-			prompt(out)
-			continue
+		words := strings.Fields(scanner.Text())
+
+		cmd := cmd.Cmd{
+			Args:  words,
+			In:    in,
+			Out:   out,
+			ExitF: exitF,
 		}
 
-		if builtin.Run(cmdArgs, in, out, exitF) {
-			prompt(out)
-			continue
-		}
+		cmd.Run()
 
-		fmt.Fprintf(out, "%s: command not found\n", cmdArgs[0])
 		prompt(out)
 	}
 
@@ -38,8 +33,7 @@ func run(
 }
 
 func main() {
-	ctx := context.Background()
-	err := run(ctx, os.Args, os.Stdin, os.Stdout, func() { os.Exit(0) })
+	err := run(os.Stdin, os.Stdout, func() { os.Exit(0) })
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)
 		os.Exit(1)
