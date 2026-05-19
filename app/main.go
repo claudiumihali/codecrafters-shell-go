@@ -11,10 +11,11 @@ import (
 )
 
 type osParams struct {
-	environ []string
-	in      io.Reader
-	out     io.Writer
-	exitF   func()
+	env    []string
+	in     io.Reader
+	out    io.Writer
+	errOut io.Writer
+	exitF  func()
 }
 
 func run(os osParams) error {
@@ -25,11 +26,12 @@ func run(os osParams) error {
 		words := strings.Fields(scanner.Text())
 
 		cmd := cmd.Cmd{
-			Environ: os.environ,
-			Args:    words,
-			In:      os.in,
-			Out:     os.out,
-			ExitF:   os.exitF,
+			Env:    os.env,
+			Args:   words,
+			In:     os.in,
+			Out:    os.out,
+			ErrOut: os.errOut,
+			ExitF:  os.exitF,
 		}
 
 		cmd.Run()
@@ -42,10 +44,11 @@ func run(os osParams) error {
 
 func main() {
 	err := run(osParams{
-		environ: os.Environ(),
-		in:      os.Stdin,
-		out:     os.Stdout,
-		exitF:   func() { os.Exit(0) },
+		env:    os.Environ(),
+		in:     os.Stdin,
+		out:    os.Stdout,
+		errOut: os.Stderr,
+		exitF:  func() { os.Exit(0) },
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s\n", err)

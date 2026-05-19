@@ -94,3 +94,18 @@ func TestType(t *testing.T) {
 		exitF: unexpectedExit(t),
 	}, out.String())
 }
+
+func TestExec(t *testing.T) {
+	in := &strings.Builder{}
+	out := &strings.Builder{}
+
+	prompt(out)
+
+	fmt.Fprintf(in, "sleep 1\n")
+	prompt(out)
+
+	simulateShell(t, osParams{
+		in:    strings.NewReader(in.String()),
+		exitF: unexpectedExit(t),
+	}, out.String())
+}

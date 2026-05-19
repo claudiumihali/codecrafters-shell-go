@@ -3,14 +3,16 @@ package cmd
 import (
 	"fmt"
 	"io"
+	"os/exec"
 )
 
 type Cmd struct {
-	Environ []string
-	Args    []string
-	In      io.Reader
-	Out     io.Writer
-	ExitF   func()
+	Env    []string
+	Args   []string
+	In     io.Reader
+	Out    io.Writer
+	ErrOut io.Writer
+	ExitF  func()
 }
 
 var builtinCmds map[string]func(Cmd)
@@ -31,6 +33,16 @@ func (cmd Cmd) Run() {
 	f, found := builtinCmds[cmd.Args[0]]
 	if found {
 		f(cmd)
+		return
+	}
+
+	execCmd := exec.Command(cmd.Args[0], cmd.Args[1:]...)
+	execCmd.Env = cmd.Env
+	execCmd.Stdin = cmd.In
+	execCmd.Stdout = cmd.Out
+	execCmd.Stderr = cmd.ErrOut
+	err := execCmd.Run()
+	if err == nil {
 		return
 	}
 
