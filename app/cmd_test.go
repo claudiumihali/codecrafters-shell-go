@@ -85,6 +85,10 @@ func TestType(t *testing.T) {
 	fmt.Fprintf(out, "invalid_banana_command: not found\n")
 	prompt(out)
 
+	fmt.Fprintf(in, "type ls\n")
+	fmt.Fprintf(out, "ls is /usr/bin/ls\n")
+	prompt(out)
+
 	simulateShell(t, osParams{
 		in:    strings.NewReader(in.String()),
 		exitF: unexpectedExit(t),
