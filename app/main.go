@@ -34,7 +34,7 @@ func run(os osParams) error {
 			ExitF:  os.exitF,
 		}
 
-		cmd.Run()
+		_ = cmd.Run()
 
 		prompt(os.out)
 	}

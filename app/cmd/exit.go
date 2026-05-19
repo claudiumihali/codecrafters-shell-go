@@ -1,5 +1,6 @@
 package cmd
 
-func exit(cmd Cmd) {
+func exit(cmd Cmd) error {
 	cmd.ExitF()
+	return nil
 }

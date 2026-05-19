@@ -15,25 +15,27 @@ type Cmd struct {
 	ExitF  func()
 }
 
-var builtinCmds map[string]func(Cmd)
+type builtinCmdRunF func(Cmd) error
+
+var builtinCmds map[string]builtinCmdRunF
 
 func init() {
-	builtinCmds = map[string]func(Cmd){
+	builtinCmds = map[string]builtinCmdRunF{
 		"exit": exit,
 		"echo": echo,
 		"type": type_,
+		"pwd":  pwd,
 	}
 }
 
-func (cmd Cmd) Run() {
+func (cmd Cmd) Run() error {
 	if len(cmd.Args) == 0 {
-		return
+		return nil
 	}
 
 	f, found := builtinCmds[cmd.Args[0]]
 	if found {
-		f(cmd)
-		return
+		return f(cmd)
 	}
 
 	execCmd := exec.Command(cmd.Args[0], cmd.Args[1:]...)
@@ -43,8 +45,9 @@ func (cmd Cmd) Run() {
 	execCmd.Stderr = cmd.ErrOut
 	err := execCmd.Run()
 	if err == nil {
-		return
+		return nil
 	}
 
 	fmt.Fprintf(cmd.Out, "%s: command not found\n", cmd.Args[0])
+	return nil
 }

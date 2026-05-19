@@ -5,22 +5,23 @@ import (
 	"os/exec"
 )
 
-func type_(cmd Cmd) {
+func type_(cmd Cmd) error {
 	if len(cmd.Args) < 2 {
-		return
+		return nil
 	}
 
 	_, found := builtinCmds[cmd.Args[1]]
 	if found {
 		fmt.Fprintf(cmd.Out, "%s is a shell builtin\n", cmd.Args[1])
-		return
+		return nil
 	}
 
 	path, err := exec.LookPath(cmd.Args[1])
 	if err == nil {
 		fmt.Fprintf(cmd.Out, "%s is %s\n", cmd.Args[1], path)
-		return
+		return nil
 	}
 
 	fmt.Fprintf(cmd.Out, "%s: not found\n", cmd.Args[1])
+	return nil
 }

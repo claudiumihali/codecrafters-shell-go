@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 )
@@ -102,6 +103,26 @@ func TestExec(t *testing.T) {
 	prompt(out)
 
 	fmt.Fprintf(in, "sleep 1\n")
+	prompt(out)
+
+	simulateShell(t, osParams{
+		in:    strings.NewReader(in.String()),
+		exitF: unexpectedExit(t),
+	}, out.String())
+}
+
+func TestPwd(t *testing.T) {
+	in := &strings.Builder{}
+	out := &strings.Builder{}
+
+	prompt(out)
+
+	fmt.Fprintf(in, "pwd\n")
+	wd, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("error getwd: %v", err)
+	}
+	fmt.Fprintf(out, "%s\n", wd)
 	prompt(out)
 
 	simulateShell(t, osParams{
