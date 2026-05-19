@@ -117,6 +117,10 @@ func TestPwd(t *testing.T) {
 
 	prompt(out)
 
+	fmt.Fprintf(in, "type pwd\n")
+	fmt.Fprintf(out, "pwd is a shell builtin\n")
+	prompt(out)
+
 	fmt.Fprintf(in, "pwd\n")
 	wd, err := os.Getwd()
 	if err != nil {
