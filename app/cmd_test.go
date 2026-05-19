@@ -124,7 +124,7 @@ func TestPwd(t *testing.T) {
 	fmt.Fprintf(in, "pwd\n")
 	wd, err := os.Getwd()
 	if err != nil {
-		t.Fatalf("error getwd: %v", err)
+		t.Fatalf("error Getwd: %v", err)
 	}
 	fmt.Fprintf(out, "%s\n", wd)
 	prompt(out)
@@ -150,6 +150,17 @@ func TestCd(t *testing.T) {
 
 	fmt.Fprintf(in, "cd /does_not_exist\n")
 	fmt.Fprintf(out, "cd: /does_not_exist: No such file or directory\n")
+	prompt(out)
+
+	fmt.Fprintf(in, "cd ~\n")
+	prompt(out)
+
+	fmt.Fprintf(in, "pwd\n")
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf("error UserHomeDir: %v", err)
+	}
+	fmt.Fprintf(out, "%s\n", homeDir)
 	prompt(out)
 
 	simulateShell(t, osParams{
