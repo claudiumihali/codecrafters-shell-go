@@ -19,12 +19,16 @@ type builtinCmdRunF func(Cmd) error
 
 var builtinCmds map[string]builtinCmdRunF
 
+// init is required here because the [type_] function refers to the
+// [builtinCmds] map, so the map cannot be initialized and defined in a single
+// statement.
 func init() {
 	builtinCmds = map[string]builtinCmdRunF{
 		"exit": exit,
 		"echo": echo,
 		"type": type_,
 		"pwd":  pwd,
+		"cd":   cd,
 	}
 }
 

@@ -34,7 +34,10 @@ func run(os osParams) error {
 			ExitF:  os.exitF,
 		}
 
-		_ = cmd.Run()
+		err := cmd.Run()
+		if err != nil {
+			fmt.Fprintf(os.errOut, "%v\n", err)
+		}
 
 		prompt(os.out)
 	}

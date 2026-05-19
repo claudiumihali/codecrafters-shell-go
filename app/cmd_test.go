@@ -134,3 +134,27 @@ func TestPwd(t *testing.T) {
 		exitF: unexpectedExit(t),
 	}, out.String())
 }
+
+func TestCd(t *testing.T) {
+	in := &strings.Builder{}
+	out := &strings.Builder{}
+
+	prompt(out)
+
+	fmt.Fprintf(in, "cd /usr/local/bin\n")
+	prompt(out)
+
+	fmt.Fprintf(in, "pwd\n")
+	fmt.Fprintf(out, "/usr/local/bin\n")
+	prompt(out)
+
+	fmt.Fprintf(in, "cd /does_not_exist\n")
+	fmt.Fprintf(out, "cd: /does_not_exist: No such file or directory\n")
+	prompt(out)
+
+	simulateShell(t, osParams{
+		in:     strings.NewReader(in.String()),
+		errOut: os.Stderr,
+		exitF:  unexpectedExit(t),
+	}, out.String())
+}
