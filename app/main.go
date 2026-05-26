@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"github.com/codecrafters-io/shell-starter-go/app/cmd"
+	"github.com/codecrafters-io/shell-starter-go/app/lex"
 )
 
 type osParams struct {
@@ -23,7 +23,7 @@ func run(os osParams) error {
 
 	scanner := bufio.NewScanner(os.in)
 	for scanner.Scan() {
-		words := strings.Fields(scanner.Text())
+		words := lex.Parse(scanner.Text())
 
 		cmd := cmd.Cmd{
 			Env:    os.env,
