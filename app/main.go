@@ -23,7 +23,7 @@ func run(os osParams) error {
 
 	scanner := bufio.NewScanner(os.in)
 	for scanner.Scan() {
-		words := lex.Parse(scanner.Text())
+		words := lex.Split(scanner.Text())
 
 		cmd := cmd.Cmd{
 			Env:    os.env,

@@ -6,42 +6,49 @@ import (
 	"unicode/utf8"
 )
 
-// item represents a token returned by the lexer.
-type item struct {
-	typ itemType
+func Split(in string) []string {
+	out := make([]string, 0, 1)
+
+	l := lexer{in: in}
+	for t := l.nextToken(); t.typ != tokenEOF; t = l.nextToken() {
+		out = append(out, t.val)
+	}
+
+	return out
+}
+
+type tokenType int
+
+const (
+	tokenError tokenType = iota
+	tokenEOF
+	tokenArg
+)
+
+type token struct {
+	typ tokenType
 	val string
 }
 
-type itemType int
-
-const (
-	itemError itemType = iota
-	itemSpace
-	itemEOF
-	itemArg
-)
-
-const eof = -1
-
 type lexer struct {
-	input string
+	in    string
 	start int
 	pos   int
 	atEOF bool
-	item  item
+	token token
 }
 
-// stateFn represents the state of the lexer as a function that returns the next
-// state.
-type stateFn func(*lexer) stateFn
+type state func(*lexer) state
+
+const eof = -1
 
 func (l *lexer) next() rune {
-	if l.pos >= len(l.input) {
+	if l.pos >= len(l.in) {
 		l.atEOF = true
 		return eof
 	}
 
-	r, w := utf8.DecodeRuneInString(l.input[l.pos:])
+	r, w := utf8.DecodeRuneInString(l.in[l.pos:])
 
 	l.pos += w
 
@@ -53,7 +60,7 @@ func (l *lexer) backup() {
 		return
 	}
 
-	_, w := utf8.DecodeLastRuneInString(l.input[:l.pos])
+	_, w := utf8.DecodeLastRuneInString(l.in[:l.pos])
 
 	l.pos -= w
 }
@@ -66,81 +73,53 @@ func (l *lexer) peek() rune {
 	return r
 }
 
-func (l *lexer) thisItem(t itemType) item {
-	i := item{
-		typ: t,
-		val: l.input[l.start:l.pos],
-	}
+func (l *lexer) skip() {
+	l.next()
+
 	l.start = l.pos
-	return i
 }
 
-func (l *lexer) emitItem(i item) stateFn {
-	l.item = i
+func (l *lexer) emit(typ tokenType) state {
+	l.token = token{
+		typ: typ,
+		val: l.in[l.start:l.pos],
+	}
+
+	l.start = l.pos
+
 	return nil
 }
 
-func (l *lexer) nextItem() item {
-	state := lexSpace
+func (l *lexer) nextToken() token {
+	state := lexArg
 	for {
 		state = state(l)
 		if state == nil {
-			return l.item
+			return l.token
 		}
 	}
 }
 
-func lexSpace(l *lexer) stateFn {
-	var r rune
-	for {
-		r = l.peek()
-		if !unicode.IsSpace(r) {
-			break
+func lexArg(l *lexer) state {
+	r := l.peek()
+	switch {
+	case unicode.IsSpace(r):
+		if l.pos > l.start {
+			return l.emit(tokenArg)
 		}
+
+		l.skip()
+
+		return lexArg
+	case r == eof:
+		if l.pos > l.start {
+			return l.emit(tokenArg)
+		}
+
+		return l.emit(tokenEOF)
+	default:
 		l.next()
+
+		return lexArg
 	}
-
-	if l.pos > l.start {
-		return l.emitItem(l.thisItem(itemSpace))
-	}
-
-	if r == eof {
-		return l.emitItem(l.thisItem(itemEOF))
-	}
-
-	return lexArg
-}
-
-func lexArg(l *lexer) stateFn {
-	var r rune
-	for {
-		r = l.peek()
-		if r == eof || unicode.IsSpace(r) {
-			break
-		}
-		l.next()
-	}
-
-	if l.pos > l.start {
-		return l.emitItem(l.thisItem(itemArg))
-	}
-
-	if r == eof {
-		return l.emitItem(l.thisItem(itemEOF))
-	}
-
-	return lexSpace
-}
-
-func Parse(input string) []string {
-	out := make([]string, 0, 1)
-
-	l := &lexer{input: input}
-	for i := l.nextItem(); i.typ != itemEOF; i = l.nextItem() {
-		if i.typ == itemArg {
-			out = append(out, i.val)
-		}
-	}
-
-	return out
 }

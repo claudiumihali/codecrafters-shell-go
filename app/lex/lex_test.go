@@ -35,7 +35,7 @@ func TestLex(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			args := Parse(test.input)
+			args := Split(test.input)
 
 			if len(args) != len(test.args) {
 				t.Fatalf("expected %d args, actual %d", len(test.args),
