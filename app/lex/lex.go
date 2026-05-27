@@ -80,13 +80,9 @@ func (l *lexer) skip() {
 }
 
 func (l *lexer) emit(typ tokenType) state {
-	l.token = token{
-		typ: typ,
-		val: l.in[l.start:l.pos],
-	}
-
+	l.token.typ = typ
+	l.token.val = l.in[l.start:l.pos]
 	l.start = l.pos
-
 	return nil
 }
 
