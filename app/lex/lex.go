@@ -34,7 +34,6 @@ type lexer struct {
 	in    string
 	start int
 	pos   int
-	atEOF bool
 	token token
 }
 
@@ -44,7 +43,6 @@ const eof = -1
 
 func (l *lexer) next() rune {
 	if l.pos >= len(l.in) {
-		l.atEOF = true
 		return eof
 	}
 
@@ -56,27 +54,13 @@ func (l *lexer) next() rune {
 }
 
 func (l *lexer) backup() {
-	if l.atEOF || l.pos <= 0 {
+	if l.pos <= 0 {
 		return
 	}
 
 	_, w := utf8.DecodeLastRuneInString(l.in[:l.pos])
 
 	l.pos -= w
-}
-
-func (l *lexer) peek() rune {
-	r := l.next()
-
-	l.backup()
-
-	return r
-}
-
-func (l *lexer) skip() {
-	l.next()
-
-	l.start = l.pos
 }
 
 func (l *lexer) emit(typ tokenType) state {
@@ -97,14 +81,17 @@ func (l *lexer) nextToken() token {
 }
 
 func lexArg(l *lexer) state {
-	r := l.peek()
+	r := l.next()
 	switch {
 	case unicode.IsSpace(r):
+		l.backup()
+
 		if l.pos > l.start {
 			return l.emit(tokenArg)
 		}
 
-		l.skip()
+		l.next()
+		l.start = l.pos
 
 		return lexArg
 	case r == eof:
@@ -114,8 +101,6 @@ func lexArg(l *lexer) state {
 
 		return l.emit(tokenEOF)
 	default:
-		l.next()
-
 		return lexArg
 	}
 }
