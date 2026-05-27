@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/codecrafters-io/shell-starter-go/app/cmd"
-	"github.com/codecrafters-io/shell-starter-go/app/lex"
+	"github.com/codecrafters-io/shell-starter-go/app/parse"
 )
 
 type osParams struct {
@@ -23,7 +23,7 @@ func run(os osParams) error {
 
 	scanner := bufio.NewScanner(os.in)
 	for scanner.Scan() {
-		words := lex.Split(scanner.Text())
+		words := parse.Split(scanner.Text())
 
 		cmd := cmd.Cmd{
 			Env:    os.env,
