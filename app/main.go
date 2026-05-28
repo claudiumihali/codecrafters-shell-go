@@ -23,18 +23,21 @@ func run(os osParams) error {
 
 	scanner := bufio.NewScanner(os.in)
 	for scanner.Scan() {
-		words := parse.Split(scanner.Text())
+		args, err := parse.Split(scanner.Text())
+		if err != nil {
+			return err
+		}
 
 		cmd := cmd.Cmd{
 			Env:    os.env,
-			Args:   words,
+			Args:   args,
 			In:     os.in,
 			Out:    os.out,
 			ErrOut: os.errOut,
 			ExitF:  os.exitF,
 		}
 
-		err := cmd.Run()
+		err = cmd.Run()
 		if err != nil {
 			fmt.Fprintf(os.errOut, "%v\n", err)
 		}

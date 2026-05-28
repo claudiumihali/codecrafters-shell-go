@@ -17,7 +17,7 @@ func simulateShell(t *testing.T, os osParams, expectedOut string) {
 	}
 
 	if outBuf.String() != expectedOut {
-		t.Fatalf("wrong output: expected %s; actual %s", expectedOut,
+		t.Fatalf("wrong output: expected: %q; actual: %q", expectedOut,
 			outBuf.String())
 	}
 }

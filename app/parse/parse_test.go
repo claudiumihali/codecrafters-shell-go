@@ -1,11 +1,15 @@
 package parse
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestParseArg(t *testing.T) {
 	tests := map[string]struct {
 		input string
 		args  []string
+		err   error
 	}{
 		"empty": {
 			input: "",
@@ -35,16 +39,19 @@ func TestParseArg(t *testing.T) {
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			args := Split(test.input)
+			args, err := Split(test.input)
+			if !errors.Is(err, test.err) {
+				t.Fatalf("expected error: %v, actual: %v", test.err, err)
+			}
 
 			if len(args) != len(test.args) {
-				t.Fatalf("expected %d args, actual %d", len(test.args),
+				t.Fatalf("expected args no: %d, actual: %d", len(test.args),
 					len(args))
 			}
 
 			for i := range args {
 				if args[i] != test.args[i] {
-					t.Errorf("expected arg %d to be %q, actual %q", i,
+					t.Errorf("expected arg %d to be: %q, actual: %q", i,
 						test.args[i], args[i])
 				}
 			}
@@ -56,37 +63,49 @@ func TestParseSingleQuotes(t *testing.T) {
 	tests := map[string]struct {
 		input string
 		args  []string
+		err   error
 	}{
 		"spaces_within_single_quotes": {
 			input: "echo 'hello    world'",
 			args:  []string{"echo", "hello    world"},
 		},
-		"adjacent_single_quotes": {
+		"empty_single_quotes": {
 			input: "echo hello '' world",
-			args:  []string{"echo", "hello", "world"},
+			args:  []string{"echo", "hello", "", "world"},
+		},
+		"single_quotes_in_arg": {
+			input: "echo he'llo'wo'rld'",
+			args:  []string{"echo", "helloworld"},
 		},
 		"adjacent_single_quotes_in_arg": {
 			input: "echo hello''world",
 			args:  []string{"echo", "helloworld"},
 		},
 		"adjacent_single_quotes_in_single_quoted_arg": {
-			input: "echo 'hello''world'",
-			args:  []string{"echo", "helloworld"},
+			input: "echo 'he  llo''world'",
+			args:  []string{"echo", "he  lloworld"},
+		},
+		"single_quotes_not_closed": {
+			input: "echo 'hello world",
+			err:   unterminatedSingleQuoteErr,
 		},
 	}
 
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
-			args := Split(test.input)
+			args, err := Split(test.input)
+			if !errors.Is(err, test.err) {
+				t.Fatalf("expected error: %v, actual: %v", test.err, err)
+			}
 
 			if len(args) != len(test.args) {
-				t.Fatalf("expected %d args, actual %d", len(test.args),
+				t.Fatalf("expected args no: %d, actual: %d", len(test.args),
 					len(args))
 			}
 
 			for i := range args {
 				if args[i] != test.args[i] {
-					t.Errorf("expected arg %d to be %q, actual %q", i,
+					t.Errorf("expected arg %d to be: %q, actual: %q", i,
 						test.args[i], args[i])
 				}
 			}
