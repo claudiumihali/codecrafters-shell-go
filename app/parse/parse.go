@@ -17,7 +17,7 @@ type tokenizer struct {
 type tokenizerState func(*tokenizer) tokenizerState
 
 func (t *tokenizer) nextToken() string {
-	t.token = nil
+	t.token = t.token[:0]
 	t.err = nil
 	state := start
 	for {
