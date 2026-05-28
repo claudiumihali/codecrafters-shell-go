@@ -97,8 +97,8 @@ func inSingleQuotes(t *tokenizer) tokenizerState {
 		return nil
 	}
 
-	switch {
-	case r == '\'':
+	switch r {
+	case '\'':
 		return inArg
 	default:
 		t.token = append(t.token, r)
