@@ -112,3 +112,57 @@ func TestParseSingleQuotes(t *testing.T) {
 		})
 	}
 }
+
+func TestParseDoubleQuotes(t *testing.T) {
+	tests := map[string]struct {
+		input string
+		args  []string
+		err   error
+	}{
+		"spaces_within_double_quotes": {
+			input: `echo "hello    world"`,
+			args:  []string{"echo", "hello    world"},
+		},
+		"empty_double_quotes": {
+			input: `echo hello "" world`,
+			args:  []string{"echo", "hello", "", "world"},
+		},
+		"double_quotes_in_arg": {
+			input: `echo he"llo"wo"rld"`,
+			args:  []string{"echo", "helloworld"},
+		},
+		"adjacent_double_quotes_in_arg": {
+			input: `echo hello""world`,
+			args:  []string{"echo", "helloworld"},
+		},
+		"adjacent_double_quotes_in_double_quoted_arg": {
+			input: `echo "he  llo""world"`,
+			args:  []string{"echo", "he  lloworld"},
+		},
+		"double_quotes_not_closed": {
+			input: `echo "hello world`,
+			err:   unterminatedDoubleQuoteErr,
+		},
+	}
+
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			args, err := Split(test.input)
+			if !errors.Is(err, test.err) {
+				t.Fatalf("expected error: %v, actual: %v", test.err, err)
+			}
+
+			if len(args) != len(test.args) {
+				t.Fatalf("expected args no: %d, actual: %d", len(test.args),
+					len(args))
+			}
+
+			for i := range args {
+				if args[i] != test.args[i] {
+					t.Errorf("expected arg %d to be: %q, actual: %q", i,
+						test.args[i], args[i])
+				}
+			}
+		})
+	}
+}

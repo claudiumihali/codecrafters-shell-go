@@ -55,6 +55,8 @@ func start(t *tokenizer) tokenizerState {
 		return start
 	case r == '\'':
 		return inSingleQuotes
+	case r == '"':
+		return inDoubleQuotes
 	default:
 		t.token = append(t.token, r)
 		return inArg
@@ -77,6 +79,8 @@ func inArg(t *tokenizer) tokenizerState {
 		return nil
 	case r == '\'':
 		return inSingleQuotes
+	case r == '"':
+		return inDoubleQuotes
 	default:
 		t.token = append(t.token, r)
 		return inArg
@@ -103,5 +107,28 @@ func inSingleQuotes(t *tokenizer) tokenizerState {
 	default:
 		t.token = append(t.token, r)
 		return inSingleQuotes
+	}
+}
+
+var unterminatedDoubleQuoteErr = errors.New("unterminated double quote")
+
+func inDoubleQuotes(t *tokenizer) tokenizerState {
+	r, _, err := t.in.ReadRune()
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			t.err = unterminatedDoubleQuoteErr
+			return nil
+		}
+
+		t.err = err
+		return nil
+	}
+
+	switch r {
+	case '"':
+		return inArg
+	default:
+		t.token = append(t.token, r)
+		return inDoubleQuotes
 	}
 }
