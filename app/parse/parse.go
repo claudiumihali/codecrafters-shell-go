@@ -57,6 +57,8 @@ func start(t *tokenizer) tokenizerState {
 		return inSingleQuotes
 	case r == '"':
 		return inDoubleQuotes
+	case r == '\\':
+		return inBackslash
 	default:
 		t.token = append(t.token, r)
 		return inArg
@@ -81,6 +83,8 @@ func inArg(t *tokenizer) tokenizerState {
 		return inSingleQuotes
 	case r == '"':
 		return inDoubleQuotes
+	case r == '\\':
+		return inBackslash
 	default:
 		t.token = append(t.token, r)
 		return inArg
@@ -131,4 +135,22 @@ func inDoubleQuotes(t *tokenizer) tokenizerState {
 		t.token = append(t.token, r)
 		return inDoubleQuotes
 	}
+}
+
+var missingEscapedCharErr = errors.New("missing escaped character after \\")
+
+func inBackslash(t *tokenizer) tokenizerState {
+	r, _, err := t.in.ReadRune()
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			t.err = missingEscapedCharErr
+			return nil
+		}
+
+		t.err = err
+		return nil
+	}
+
+	t.token = append(t.token, r)
+	return inArg
 }

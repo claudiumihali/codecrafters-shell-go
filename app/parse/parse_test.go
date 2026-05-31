@@ -5,12 +5,37 @@ import (
 	"testing"
 )
 
+type testCase struct {
+	input string
+	args  []string
+	err   error
+}
+
+func runTests(t *testing.T, tests map[string]testCase) {
+	for name, test := range tests {
+		t.Run(name, func(t *testing.T) {
+			args, err := Split(test.input)
+			if !errors.Is(err, test.err) {
+				t.Fatalf("expected error: %v, actual: %v", test.err, err)
+			}
+
+			if len(args) != len(test.args) {
+				t.Fatalf("expected args no: %d, actual: %d", len(test.args),
+					len(args))
+			}
+
+			for i := range args {
+				if args[i] != test.args[i] {
+					t.Errorf("expected arg %d to be: %q, actual: %q", i,
+						test.args[i], args[i])
+				}
+			}
+		})
+	}
+}
+
 func TestParseArg(t *testing.T) {
-	tests := map[string]struct {
-		input string
-		args  []string
-		err   error
-	}{
+	tests := map[string]testCase{
 		"empty": {
 			input: "",
 			args:  []string{},
@@ -36,35 +61,11 @@ func TestParseArg(t *testing.T) {
 			args:  []string{"grape", "orange", "raspberry"},
 		},
 	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			args, err := Split(test.input)
-			if !errors.Is(err, test.err) {
-				t.Fatalf("expected error: %v, actual: %v", test.err, err)
-			}
-
-			if len(args) != len(test.args) {
-				t.Fatalf("expected args no: %d, actual: %d", len(test.args),
-					len(args))
-			}
-
-			for i := range args {
-				if args[i] != test.args[i] {
-					t.Errorf("expected arg %d to be: %q, actual: %q", i,
-						test.args[i], args[i])
-				}
-			}
-		})
-	}
+	runTests(t, tests)
 }
 
 func TestParseSingleQuotes(t *testing.T) {
-	tests := map[string]struct {
-		input string
-		args  []string
-		err   error
-	}{
+	tests := map[string]testCase{
 		"spaces_within_single_quotes": {
 			input: "echo 'hello    world'",
 			args:  []string{"echo", "hello    world"},
@@ -90,35 +91,11 @@ func TestParseSingleQuotes(t *testing.T) {
 			err:   unterminatedSingleQuoteErr,
 		},
 	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			args, err := Split(test.input)
-			if !errors.Is(err, test.err) {
-				t.Fatalf("expected error: %v, actual: %v", test.err, err)
-			}
-
-			if len(args) != len(test.args) {
-				t.Fatalf("expected args no: %d, actual: %d", len(test.args),
-					len(args))
-			}
-
-			for i := range args {
-				if args[i] != test.args[i] {
-					t.Errorf("expected arg %d to be: %q, actual: %q", i,
-						test.args[i], args[i])
-				}
-			}
-		})
-	}
+	runTests(t, tests)
 }
 
 func TestParseDoubleQuotes(t *testing.T) {
-	tests := map[string]struct {
-		input string
-		args  []string
-		err   error
-	}{
+	tests := map[string]testCase{
 		"spaces_within_double_quotes": {
 			input: `echo "hello    world"`,
 			args:  []string{"echo", "hello    world"},
@@ -144,25 +121,23 @@ func TestParseDoubleQuotes(t *testing.T) {
 			err:   unterminatedDoubleQuoteErr,
 		},
 	}
+	runTests(t, tests)
+}
 
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			args, err := Split(test.input)
-			if !errors.Is(err, test.err) {
-				t.Fatalf("expected error: %v, actual: %v", test.err, err)
-			}
-
-			if len(args) != len(test.args) {
-				t.Fatalf("expected args no: %d, actual: %d", len(test.args),
-					len(args))
-			}
-
-			for i := range args {
-				if args[i] != test.args[i] {
-					t.Errorf("expected arg %d to be: %q, actual: %q", i,
-						test.args[i], args[i])
-				}
-			}
-		})
+func TestParseBackslash(t *testing.T) {
+	tests := map[string]testCase{
+		"backslash_before_space": {
+			input: `echo three\ \ \ spaces and\  one`,
+			args:  []string{"echo", "three   spaces", "and ", "one"},
+		},
+		"backslash_before_backslash": {
+			input: `echo hello\\world`,
+			args:  []string{"echo", `hello\world`},
+		},
+		"backslash_before_quote": {
+			input: `echo \'hello\'`,
+			args:  []string{"echo", "'hello'"},
+		},
 	}
+	runTests(t, tests)
 }
