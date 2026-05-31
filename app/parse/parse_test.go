@@ -138,6 +138,14 @@ func TestParseBackslash(t *testing.T) {
 			input: `echo \'hello\'`,
 			args:  []string{"echo", "'hello'"},
 		},
+		"backslash_before_backslash_in_double_quotes": {
+			input: `echo "A \\ escapes itself"`,
+			args:  []string{"echo", `A \ escapes itself`},
+		},
+		"backslash_before_double_quote_in_double_quotes": {
+			input: `echo "A \" inside double quotes"`,
+			args:  []string{"echo", `A " inside double quotes`},
+		},
 	}
 	runTests(t, tests)
 }

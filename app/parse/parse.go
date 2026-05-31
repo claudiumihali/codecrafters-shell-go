@@ -131,6 +131,9 @@ func inDoubleQuotes(t *tokenizer) tokenizerState {
 	switch r {
 	case '"':
 		return inArg
+	case '\\':
+		t.token = append(t.token, r)
+		return inBackslashInDoubleQuotes
 	default:
 		t.token = append(t.token, r)
 		return inDoubleQuotes
@@ -153,4 +156,27 @@ func inBackslash(t *tokenizer) tokenizerState {
 
 	t.token = append(t.token, r)
 	return inArg
+}
+
+func inBackslashInDoubleQuotes(t *tokenizer) tokenizerState {
+	r, _, err := t.in.ReadRune()
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			t.err = unterminatedDoubleQuoteErr
+			return nil
+		}
+
+		t.err = err
+		return nil
+	}
+
+	switch r {
+	case '"', '\\':
+		t.token = t.token[:len(t.token)-1]
+		t.token = append(t.token, r)
+		return inDoubleQuotes
+	default:
+		t.token = append(t.token, r)
+		return inDoubleQuotes
+	}
 }
